@@ -10,6 +10,7 @@ export const CHANNELS: ChannelDef[] = [
   { id: 3, name: "EVENING NEWS", label: "LIVE" },
   { id: 4, name: "ZENI-POP", label: "IDLE" },
   { id: 5, name: "MONOSCOPE", label: "TEST" },
+  { id: 6, name: "THE NUMBERS", label: "COVERT" },
 ];
 
 export const SCREEN_W = 512;
@@ -33,6 +34,9 @@ export class ChannelRenderer {
   private bounce = { x: 150, y: 140, vx: 96, vy: 74, hue: 12 };
   private headlineStart = 0;
   private headlineIdx = 0;
+  private lastChannel = -1;
+  private numbers: string[] = [];
+  private numbersChangedAt = -10;
 
   constructor() {
     this.snowCanvas = document.createElement("canvas");
@@ -48,6 +52,8 @@ export class ChannelRenderer {
     t: number,
     dt: number
   ): void {
+    const fresh = channel !== this.lastChannel;
+    this.lastChannel = channel;
     switch (channel) {
       case 0:
         this.drawStatic(ctx, t);
@@ -61,8 +67,11 @@ export class ChannelRenderer {
       case 3:
         this.drawBounce(ctx, t, dt);
         break;
-      default:
+      case 4:
         this.drawTestCard(ctx, t);
+        break;
+      default:
+        this.drawNumbers(ctx, t, fresh);
         break;
     }
   }
@@ -360,6 +369,87 @@ export class ChannelRenderer {
     ctx.fillStyle = "#9a9a9a";
     ctx.fillText("CH 05 · 512 LINES · 4:3 · DO NOT ADJUST YOUR SET", cx, 30);
     ctx.textAlign = "left";
+  }
+
+  // ---- CH 6 · THE NUMBERS STATION --------------------------------------------------
+  private drawNumbers(ctx: CanvasRenderingContext2D, t: number, fresh: boolean): void {
+    // phosphor ghosting — translucent wipe leaves a CRT trail; opaque on tune-in
+    ctx.fillStyle = fresh ? "#000500" : "rgba(0, 5, 0, 0.2)";
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // interference / static, sparse for that shortwave feel
+    const imageData = ctx.getImageData(0, 0, SCREEN_W, SCREEN_H);
+    const data = imageData.data;
+    for (let i = 0; i < data.length; i += 40) {
+      if (Math.random() > 0.95) {
+        const brightness = Math.random() * 50;
+        data[i] = brightness;
+        data[i + 1] = brightness;
+        data[i + 2] = brightness;
+      }
+    }
+    ctx.putImageData(imageData, 0, 0);
+
+    // a fresh code group every 3 seconds
+    if (t - this.numbersChangedAt > 3) {
+      this.numbersChangedAt = t;
+      this.numbers = Array.from({ length: 5 }, () =>
+        String(Math.floor(Math.random() * 100)).padStart(2, "0")
+      );
+    }
+
+    ctx.textAlign = "center";
+    ctx.shadowColor = "#4aff4a";
+
+    // blinking REC pip
+    if (Math.sin(t * 4) > -0.35) {
+      ctx.fillStyle = "#ff4036";
+      ctx.shadowColor = "#ff4036";
+      ctx.shadowBlur = 10;
+      ctx.beginPath();
+      ctx.arc(30, 30, 6, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.textAlign = "left";
+      ctx.font = "22px 'VT323', 'Courier New', monospace";
+      ctx.fillStyle = "#ff8a80";
+      ctx.fillText("REC", 42, 38);
+    }
+
+    // carrier frequency, top right
+    ctx.textAlign = "right";
+    ctx.font = "20px 'VT323', 'Courier New', monospace";
+    ctx.fillStyle = "#22aa22";
+    ctx.shadowColor = "#4aff4a";
+    ctx.shadowBlur = 4;
+    ctx.fillText("46.520 MHz · MK RELAY", SCREEN_W - 18, 38);
+
+    // flavor text
+    ctx.textAlign = "center";
+    ctx.font = "26px 'VT323', 'Courier New', monospace";
+    ctx.fillStyle = "#22aa22";
+    ctx.shadowBlur = 6;
+    ctx.fillText("SUBJECT: MASON", SCREEN_W / 2, 110);
+    ctx.fillText("STATUS: ACTIVE", SCREEN_W / 2, 332);
+
+    // the code group — phosphor green with analog jitter
+    const jx = (Math.random() - 0.5) * 4;
+    const jy = (Math.random() - 0.5) * 4;
+    ctx.font = "58px 'VT323', 'Courier New', monospace";
+    ctx.fillStyle = "#4aff4a";
+    ctx.shadowBlur = 16;
+    ctx.fillText(this.numbers.join(" "), SCREEN_W / 2 + jx, 228 + jy);
+
+    // occasional horizontal tear / glitch
+    if (Math.random() > 0.9) {
+      const tearY = Math.random() * (SCREEN_H - 44);
+      const tearHeight = Math.random() * 30 + 10;
+      const tearShift = (Math.random() - 0.5) * 40;
+      const tearData = ctx.getImageData(0, tearY, SCREEN_W, tearHeight);
+      ctx.putImageData(tearData, tearShift, tearY);
+    }
+
+    ctx.textAlign = "left";
+    ctx.shadowBlur = 0;
   }
 
   // ---- phosphor OSD ---------------------------------------------------------------

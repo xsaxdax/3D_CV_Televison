@@ -26,6 +26,7 @@ class TvAudio {
   private noiseGain: GainNode | null = null;
   private humGain: GainNode | null = null;
   private toneGain: GainNode | null = null;
+  private toneOsc: OscillatorNode | null = null;
   enabled = false;
   private volume = 0.7;
 
@@ -68,7 +69,7 @@ class TvAudio {
     osc.connect(this.humGain).connect(this.master);
     osc.start();
 
-    // 997 Hz test tone
+    // test tone / numbers-station carrier
     const tone = ctx.createOscillator();
     tone.type = "sine";
     tone.frequency.value = 997;
@@ -76,6 +77,7 @@ class TvAudio {
     this.toneGain.gain.value = 0;
     tone.connect(this.toneGain).connect(this.master);
     tone.start();
+    this.toneOsc = tone;
   }
 
   setEnabled(on: boolean): void {
@@ -106,10 +108,15 @@ class TvAudio {
       [0.02, 0.025, 0],
       [0.006, 0.02, 0],
       [0.01, 0.03, 0],
+      [0.035, 0.02, 0.014],
     ][channel];
     set(this.noiseGain, mix[0]);
     set(this.humGain, mix[1]);
     set(this.toneGain, mix[2]);
+    if (this.toneOsc) {
+      // the numbers station carries a low, droning 620 Hz carrier
+      this.toneOsc.frequency.setTargetAtTime(channel === 5 ? 620 : 997, t, 0.2);
+    }
   }
 
   click(): void {
