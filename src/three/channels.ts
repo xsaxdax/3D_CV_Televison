@@ -162,12 +162,15 @@ export class ChannelRenderer {
     ctx.fillStyle = "#e9ddc6";
     
     const skills = [
-      "HTML, CSS, JavaScript, React.js, Node.js, Vue.js",
-      "Salesforce, Apex, LWC, SOQL",
-      "Python, Java, C, C++",
-      "SQL, MySQL, Oracle, SAP HANA",
-      "Windows Server, PowerShell, Bash",
-      "IBM Watson AI, NLP"
+      "Kundenbetreuung und Projektplanung",
+      "HANA & Oracle - Produktberatung (Libelle AG)",
+      "SAP Basis - Produktberatung (Libelle AG)",
+      "HTML, CSS, JS, React, Node, Vue, MySQL",
+      "Salesforce: Admin, Flows, Apex, LWC (Ailo-IT)",
+      "Bash, Bash Skripte & PowerShell",
+      "Python, Java",
+      "SQL-Abfragen & Datenbanken-Modellierung",
+      "Netzwerkadministration Windows (Efficom)"
     ];
 
     yPos += 30;
