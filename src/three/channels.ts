@@ -5,11 +5,12 @@ export interface ChannelDef {
 }
 
 export const CHANNELS: ChannelDef[] = [
-  { id: 1, name: "LIBELLE AG", label: "DATA MASKING" },
-  { id: 2, name: "AILO-IT", label: "SALESFORCE" },
-  { id: 3, name: "IRS SOFTWARE", label: "VUE.JS" },
-  { id: 4, name: "EFFICOM", label: "WINDOWS" },
-  { id: 5, name: "ESCIRES", label: "IBM WATSON" },
+  { id: 1, name: "MY CV", label: "RESUME" },
+  { id: 2, name: "LIBELLE AG", label: "DATA MASKING" },
+  { id: 3, name: "AILO-IT", label: "SALESFORCE" },
+  { id: 4, name: "IRS SOFTWARE", label: "VUE.JS" },
+  { id: 5, name: "EFFICOM", label: "WINDOWS" },
+  { id: 6, name: "ESCIRES", label: "IBM WATSON" },
 ];
 
 export const SCREEN_W = 512;
@@ -79,20 +80,100 @@ export class ChannelRenderer {
 
     switch (channel) {
       case 0:
-        this.drawLibelle(ctx, t);
+        this.drawCV(ctx, t);
         break;
       case 1:
-        this.drawAilo(ctx, t);
+        this.drawLibelle(ctx, t);
         break;
       case 2:
-        this.drawIRS(ctx, t);
+        this.drawAilo(ctx, t);
         break;
       case 3:
-        this.drawEfficom(ctx, t);
+        this.drawIRS(ctx, t);
         break;
       case 4:
+        this.drawEfficom(ctx, t);
+        break;
+      case 5:
         this.drawEsciris(ctx, t);
         break;
+    }
+  }
+
+  // ---- CH 0 · MY CV - Static Resume Display ----------------------------------
+  private drawCV(ctx: CanvasRenderingContext2D, t: number): void {
+    // Dark background
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // Header
+    ctx.fillStyle = "#e8a33d";
+    ctx.fillRect(0, 0, SCREEN_W, 50);
+    ctx.font = "bold 32px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillText("MARK MORGULIS", 20, 35);
+
+    // Subtitle
+    ctx.font = "16px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#8f887a";
+    ctx.fillText("Software Developer · IT Specialist", 20, 70);
+
+    // Divider
+    ctx.strokeStyle = "#e8a33d";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(20, 80);
+    ctx.lineTo(SCREEN_W - 20, 80);
+    ctx.stroke();
+
+    // Work Experience Section
+    ctx.font = "bold 20px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#e8a33d";
+    ctx.fillText("WORK EXPERIENCE", 20, 105);
+
+    ctx.font = "14px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#e9ddc6";
+    
+    const experience = [
+      { period: "11.2024 - Present", role: "Junior Consultant DataMasking", company: "Libelle AG" },
+      { period: "12.2022 - 10.2023", role: "Salesforce Developer", company: "Ailo-IT" },
+      { period: "12.2021 - 07.2022", role: "Vue.js Developer", company: "IRS Software GmbH" },
+      { period: "03.2019 - 06.2019", role: "Windows Server Admin", company: "efficom GmbH" },
+      { period: "02.2018 - 03.2018", role: "AI: IBM Watson", company: "esciris GmbH" },
+    ];
+
+    let yPos = 125;
+    for (const exp of experience) {
+      ctx.fillStyle = "#8f887a";
+      ctx.fillText(exp.period, 20, yPos);
+      ctx.fillStyle = "#e9ddc6";
+      ctx.fillText(exp.role, 20, yPos + 16);
+      ctx.fillStyle = "#e8a33d";
+      ctx.fillText(exp.company, 20, yPos + 32);
+      yPos += 48;
+    }
+
+    // Skills Section
+    ctx.font = "bold 20px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#e8a33d";
+    ctx.fillText("SKILLS", 20, yPos + 10);
+
+    ctx.font = "13px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#e9ddc6";
+    
+    const skills = [
+      "HTML, CSS, JavaScript, React.js, Node.js, Vue.js",
+      "Salesforce, Apex, LWC, SOQL",
+      "Python, Java, C, C++",
+      "SQL, MySQL, Oracle, SAP HANA",
+      "Windows Server, PowerShell, Bash",
+      "IBM Watson AI, NLP"
+    ];
+
+    yPos += 30;
+    for (const skill of skills) {
+      ctx.fillText("• " + skill, 20, yPos);
+      yPos += 18;
     }
   }
 

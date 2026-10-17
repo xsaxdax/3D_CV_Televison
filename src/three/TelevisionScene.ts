@@ -103,6 +103,7 @@ class TvAudio {
     const set = (g: GainNode | null, v: number) =>
       g && g.gain.setTargetAtTime(power ? v : 0, t, 0.08);
     const mix = [
+      [0.008, 0.01, 0.003],   // CV - very quiet
       [0.02, 0.025, 0.01],    // Libelle - soft hum
       [0.015, 0.02, 0.02],    // Ailo - Salesforce tone
       [0.01, 0.015, 0.005],   // IRS - quiet code
@@ -114,7 +115,7 @@ class TvAudio {
     set(this.toneGain, mix[2]);
     if (this.toneOsc) {
       // Different tone frequencies per channel
-      const freqs = [440, 523, 392, 330, 659];
+      const freqs = [220, 440, 523, 392, 330, 659];
       this.toneOsc.frequency.setTargetAtTime(freqs[channel], t, 0.2);
     }
   }
@@ -185,6 +186,9 @@ export class TelevisionScene {
   private knobPwrMat!: THREE.MeshStandardMaterial;
   private knobTargets = { ch: 0, vol: 0, pwr: 0 };
   private interactives: { group: THREE.Group; type: InteractiveType }[] = [];
+  private tunerLabel!: THREE.Mesh;
+  private volumeLabel!: THREE.Mesh;
+  private tvGroup!: THREE.Group;
 
   // pointer / raycast
   private raycaster = new THREE.Raycaster();
@@ -426,6 +430,7 @@ export class TelevisionScene {
   // ---- the television ----------------------------------------------------------
   private buildTv(): THREE.PointLight {
     const tv = new THREE.Group();
+    this.tvGroup = tv;
     tv.position.set(0, 1.72, 0);
 
     // rounded walnut cabinet (extruded)
@@ -503,9 +508,14 @@ export class TelevisionScene {
     this.knobPwrMat = this.knobPwr.userData.mat as THREE.MeshStandardMaterial;
     tv.add(this.knobPwr);
 
-    // Fixed labels (don't rotate with knobs)
-    this.addFixedLabel(tv, "VHF TUNER", 0.66, -0.2 - 0.054 - 0.055, 0.437);
-    this.addFixedLabel(tv, "VOLUME", 0.66, -0.42 - 0.054 - 0.055, 0.437);
+    // Fixed labels (added directly to scene, not tv group)
+    this.tunerLabel = this.createFixedLabel("VHF TUNER");
+    this.tunerLabel.position.set(0.66, -0.2 - 0.054 - 0.055, 0.437);
+    this.scene.add(this.tunerLabel);
+
+    this.volumeLabel = this.createFixedLabel("VOLUME");
+    this.volumeLabel.position.set(0.66, -0.42 - 0.054 - 0.055, 0.437);
+    this.scene.add(this.volumeLabel);
 
     this.interactives = [
       { group: this.knobCh, type: "channel" },
@@ -618,6 +628,24 @@ export class TelevisionScene {
     // Ensure label faces forward (no rotation needed for PlaneGeometry default)
     lbl.rotation.set(0, 0, 0);
     parent.add(lbl);
+  }
+
+  private createFixedLabel(text: string): THREE.Mesh {
+    const labelCanvas = makeCanvas(256, 48);
+    paintLabel(labelCanvas, text);
+    const tex = new THREE.CanvasTexture(labelCanvas);
+    tex.minFilter = THREE.LinearFilter;
+    tex.flipY = true;
+    this.fontRefresh.push(() => {
+      paintLabel(labelCanvas, text);
+      tex.needsUpdate = true;
+    });
+    const lbl = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.28, 0.05),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+    );
+    lbl.rotation.set(0, 0, 0);
+    return lbl;
   }
 
   private buildLamp(): THREE.SpotLight {
@@ -903,6 +931,18 @@ export class TelevisionScene {
     // antenna micro-sway
     this.antenna.rotation.z = Math.sin(t * 0.6) * 0.012;
     this.antenna.rotation.x = Math.sin(t * 0.83) * 0.008;
+
+    // Update fixed labels to follow TV group position
+    if (this.tunerLabel && this.tvGroup) {
+      const tunerLocalPos = new THREE.Vector3(0.66, -0.2 - 0.054 - 0.055, 0.437);
+      this.tvGroup.localToWorld(tunerLocalPos);
+      this.tunerLabel.position.copy(tunerLocalPos);
+    }
+    if (this.volumeLabel && this.tvGroup) {
+      const volLocalPos = new THREE.Vector3(0.66, -0.42 - 0.054 - 0.055, 0.437);
+      this.tvGroup.localToWorld(volLocalPos);
+      this.volumeLabel.position.copy(volLocalPos);
+    }
 
     // dust drift
     const pos = this.dust.geometry.getAttribute("position") as THREE.BufferAttribute;
