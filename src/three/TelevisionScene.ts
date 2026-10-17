@@ -204,13 +204,18 @@ export class TelevisionScene {
   private lastAuto = 0;
   private powerOnTimeout = 0;
   private fontRefresh: (() => void)[] = [];
+  private resizeObserver?: ResizeObserver;
 
   constructor(container: HTMLElement, cb: SceneCallbacks) {
     this.container = container;
     this.cb = cb;
 
     this.renderer = new THREE.WebGLRenderer({ antialias: true });
+    // Full-bleed canvas: the renderer element always fills its container.
     this.renderer.setSize(container.clientWidth, container.clientHeight);
+    this.renderer.domElement.style.display = "block";
+    this.renderer.domElement.style.width = "100%";
+    this.renderer.domElement.style.height = "100%";
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.shadowMap.enabled = true;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -275,6 +280,10 @@ export class TelevisionScene {
 
     // bindings
     window.addEventListener("resize", this.onResize);
+    if (typeof ResizeObserver !== "undefined") {
+      this.resizeObserver = new ResizeObserver(this.onResize);
+      this.resizeObserver.observe(container);
+    }
     window.addEventListener("keydown", this.onKey);
     const el = this.renderer.domElement;
     el.addEventListener("pointerdown", this.onPointerDown);
@@ -730,10 +739,26 @@ export class TelevisionScene {
 
   // ---- input ------------------------------------------------------------------------
   private onResize = (): void => {
-    const w = this.container.clientWidth;
-    const h = this.container.clientHeight;
-    this.camera.aspect = w / h;
+    const w = this.container.clientWidth || window.innerWidth;
+    const h = this.container.clientHeight || window.innerHeight;
+    if (w === 0 || h === 0) return;
+    // Responsive framing: keep the television set filling the whole screen.
+    // On narrow/portrait viewports widen the vertical field of view so the
+    // entire set stays visible edge-to-edge instead of being cropped.
+    const aspect = w / h;
+    const baseFov = 42;
+    const refAspect = 16 / 9;
+    let fov = baseFov;
+    if (aspect < refAspect) {
+      // compensate vertically so horizontal coverage matches the 16:9 design
+      const halfH = Math.tan(THREE.MathUtils.degToRad(baseFov / 2));
+      fov = THREE.MathUtils.radToDeg(2 * Math.atan(halfH * (refAspect / aspect)));
+      fov = Math.min(fov, 100);
+    }
+    this.camera.fov = fov;
+    this.camera.aspect = aspect;
     this.camera.updateProjectionMatrix();
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     this.renderer.setSize(w, h);
   };
 
@@ -963,6 +988,8 @@ export class TelevisionScene {
     cancelAnimationFrame(this.raf);
     window.clearTimeout(this.powerOnTimeout);
     window.removeEventListener("resize", this.onResize);
+    this.resizeObserver?.disconnect();
+    this.resizeObserver = undefined;
     window.removeEventListener("keydown", this.onKey);
     const el = this.renderer.domElement;
     el.removeEventListener("pointerdown", this.onPointerDown);
