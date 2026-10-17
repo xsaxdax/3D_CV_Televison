@@ -488,20 +488,24 @@ export class TelevisionScene {
     }
 
     // knobs (interactive)
-    this.knobCh = this.makeKnob(0x1e1e20, "VHF TUNER");
+    this.knobCh = this.makeKnob(0x1e1e20);
     this.knobCh.position.set(0.66, -0.2, 0.44);
     this.knobChMat = this.knobCh.userData.mat as THREE.MeshStandardMaterial;
     tv.add(this.knobCh);
 
-    this.knobVol = this.makeKnob(0x1e1e20, "VOLUME");
+    this.knobVol = this.makeKnob(0x1e1e20);
     this.knobVol.position.set(0.66, -0.42, 0.44);
     this.knobVolMat = this.knobVol.userData.mat as THREE.MeshStandardMaterial;
     tv.add(this.knobVol);
 
-    this.knobPwr = this.makeKnob(0x3a1512, "", 0.04);
+    this.knobPwr = this.makeKnob(0x3a1512, 0.04);
     this.knobPwr.position.set(0.66, -0.61, 0.44);
     this.knobPwrMat = this.knobPwr.userData.mat as THREE.MeshStandardMaterial;
     tv.add(this.knobPwr);
+
+    // Fixed labels (don't rotate with knobs)
+    this.addFixedLabel(tv, "VHF TUNER", 0.66, -0.2 - 0.054 - 0.055, 0.437);
+    this.addFixedLabel(tv, "VOLUME", 0.66, -0.42 - 0.054 - 0.055, 0.437);
 
     this.interactives = [
       { group: this.knobCh, type: "channel" },
@@ -575,7 +579,7 @@ export class TelevisionScene {
     return glow;
   }
 
-  private makeKnob(color: number, label: string, radius = 0.054): THREE.Group {
+  private makeKnob(color: number, radius = 0.054): THREE.Group {
     const g = new THREE.Group();
     const mat = new THREE.MeshStandardMaterial({ color, metalness: 0.85, roughness: 0.35 });
     const body = new THREE.Mesh(new THREE.CylinderGeometry(radius, radius, 0.05, 24), mat);
@@ -593,24 +597,24 @@ export class TelevisionScene {
     indicator.position.set(0, radius * 0.55, 0.028);
     g.add(body, rim, indicator);
     g.userData.mat = mat;
-
-    if (label) {
-      const labelCanvas = makeCanvas(192, 44);
-      paintLabel(labelCanvas, label);
-      const tex = new THREE.CanvasTexture(labelCanvas);
-      tex.minFilter = THREE.LinearFilter;
-      this.fontRefresh.push(() => {
-        paintLabel(labelCanvas, label);
-        tex.needsUpdate = true;
-      });
-      const lbl = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.24, 0.055),
-        new THREE.MeshBasicMaterial({ map: tex, transparent: true })
-      );
-      lbl.position.set(0, -(radius + 0.055), 0.01);
-      g.add(lbl);
-    }
     return g;
+  }
+
+  private addFixedLabel(parent: THREE.Group, text: string, x: number, y: number, z: number): void {
+    const labelCanvas = makeCanvas(192, 44);
+    paintLabel(labelCanvas, text);
+    const tex = new THREE.CanvasTexture(labelCanvas);
+    tex.minFilter = THREE.LinearFilter;
+    this.fontRefresh.push(() => {
+      paintLabel(labelCanvas, text);
+      tex.needsUpdate = true;
+    });
+    const lbl = new THREE.Mesh(
+      new THREE.PlaneGeometry(0.24, 0.055),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+    );
+    lbl.position.set(x, y, z);
+    parent.add(lbl);
   }
 
   private buildLamp(): THREE.SpotLight {
