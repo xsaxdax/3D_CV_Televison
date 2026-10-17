@@ -5,46 +5,63 @@ export interface ChannelDef {
 }
 
 export const CHANNELS: ChannelDef[] = [
-  { id: 1, name: "WHITE NOISE", label: "SNOW" },
-  { id: 2, name: "COLOR BARS", label: "SMPTE" },
-  { id: 3, name: "EVENING NEWS", label: "LIVE" },
-  { id: 4, name: "ZENI-POP", label: "IDLE" },
-  { id: 5, name: "MONOSCOPE", label: "TEST" },
-  { id: 6, name: "THE NUMBERS", label: "COVERT" },
+  { id: 1, name: "LIBELLE AG", label: "DATA MASKING" },
+  { id: 2, name: "AILO-IT", label: "SALESFORCE" },
+  { id: 3, name: "IRS SOFTWARE", label: "VUE.JS" },
+  { id: 4, name: "EFFICOM", label: "WINDOWS" },
+  { id: 5, name: "ESCIRES", label: "IBM WATSON" },
 ];
 
 export const SCREEN_W = 512;
 export const SCREEN_H = 384;
 
-const HEADLINES = [
-  "SIGNAL LOCKED — 512 LINES OF PURE PHOSPHOR",
-  "PICTURE TUBE OUTLASTS THIRD COFFEE BREAK",
-  "ANTENNA ANGLE VERIFIED AT 23.5 DEGREES",
-  "COLOR SWEEP CIRCUIT PASSES MIDNIGHT CHECK",
-  "ROOM 40 REPORTS: ALL TUBES NOMINAL",
+const LIBELLE_DATA = [
+  "HANA_DB: ****-****-****-1234",
+  "ORACLE_SID: PROD_***_MASKED",
+  "SAP_BASIS: CLIENT *** REDACTED",
+  "TABLE: KNA1 NAME: J*** D***",
+  "FIELD: EMAIL: m***@***.com",
+  "MASK: LIBELLE_DM v4.2 ACTIVE",
 ];
 
-const TICKER =
-  "+++ ZENITRON 63-C PASSES FCC COLOR CERTIFICATION +++ RABBIT-EAR ALIGNMENT ADVISORY IN EFFECT +++ VERTICAL HOLD DRIFT WITHIN TOLERANCE +++ STATION ID EVERY 40 SECONDS +++ ";
+const AILO_DATA = [
+  "APEX: public with sharing class",
+  "FLOW: Approval_Process_v2",
+  "LWC: @api recordId; connectedCallback",
+  "SOQL: SELECT Id FROM Account",
+  "TRIGGER: before insert on Lead",
+  "DEPLOY: Status = SUCCESS",
+];
+
+const IRS_DATA = [
+  "<template><div class='app'>",
+  "export default { data() { return",
+  "methods: { fetchData() {",
+  "axios.get('/api/data').then",
+  "v-for='item in items' :key='item.id'",
+  "mounted() { this.init(); }",
+];
+
+const EFFICOM_DATA = [
+  "PS C:\\> Get-Service | Where Status",
+  "SERVER01: Windows Server 2019",
+  "ADMIN> net user /domain /add",
+  "EVENT: Security Log - ID 4624",
+  "RDP: 192.168.1.100:3389 ACTIVE",
+  "BACKUP: Daily @ 02:00 COMPLETE",
+];
+
+const ESCIRES_DATA = [
+  "WATSON: Intent Recognition 98.7%",
+  "NLP: Entity Extraction ACTIVE",
+  "TRAIN: Dataset v3.2 LOADING",
+  "API: POST /v1/natural-language",
+  "MODEL: Confidence 0.94 HIGH",
+  "RESPONSE: Processing complete",
+];
 
 export class ChannelRenderer {
-  private snowCanvas: HTMLCanvasElement;
-  private snowCtx: CanvasRenderingContext2D;
-  private snowData: ImageData;
-  private bounce = { x: 150, y: 140, vx: 96, vy: 74, hue: 12 };
-  private headlineStart = 0;
-  private headlineIdx = 0;
   private lastChannel = -1;
-  private numbers: string[] = [];
-  private numbersChangedAt = -10;
-
-  constructor() {
-    this.snowCanvas = document.createElement("canvas");
-    this.snowCanvas.width = 128;
-    this.snowCanvas.height = 96;
-    this.snowCtx = this.snowCanvas.getContext("2d")!;
-    this.snowData = this.snowCtx.createImageData(128, 96);
-  }
 
   draw(
     ctx: CanvasRenderingContext2D,
@@ -54,402 +71,328 @@ export class ChannelRenderer {
   ): void {
     const fresh = channel !== this.lastChannel;
     this.lastChannel = channel;
+    
+    if (fresh) {
+      ctx.fillStyle = "#000";
+      ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+    }
+
     switch (channel) {
       case 0:
-        this.drawStatic(ctx, t);
+        this.drawLibelle(ctx, t);
         break;
       case 1:
-        this.drawBars(ctx, t);
+        this.drawAilo(ctx, t);
         break;
       case 2:
-        this.drawNews(ctx, t);
+        this.drawIRS(ctx, t);
         break;
       case 3:
-        this.drawBounce(ctx, t, dt);
+        this.drawEfficom(ctx, t);
         break;
       case 4:
-        this.drawTestCard(ctx, t);
-        break;
-      default:
-        this.drawNumbers(ctx, t, fresh);
+        this.drawEsciris(ctx, t);
         break;
     }
   }
 
-  // ---- CH 1 · WHITE NOISE -------------------------------------------------
-  private drawStatic(ctx: CanvasRenderingContext2D, t: number): void {
-    const d = this.snowData.data;
-    for (let i = 0; i < d.length; i += 4) {
-      const v = (Math.random() * 255) | 0;
-      d[i] = v;
-      d[i + 1] = v;
-      d[i + 2] = v;
-      d[i + 3] = 255;
-    }
-    this.snowCtx.putImageData(this.snowData, 0, 0);
-    ctx.imageSmoothingEnabled = false;
-    ctx.drawImage(this.snowCanvas, 0, 0, SCREEN_W, SCREEN_H);
-    ctx.imageSmoothingEnabled = true;
-
-    // rolling luminance band
-    const by = ((t * 52) % (SCREEN_H + 140)) - 70;
-    const g = ctx.createLinearGradient(0, by, 0, by + 70);
-    g.addColorStop(0, "rgba(255,255,255,0)");
-    g.addColorStop(0.5, "rgba(255,255,255,0.10)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
+  // ---- CH 1 · LIBELLE AG (Data Masking) ------------------------------------
+  private drawLibelle(ctx: CanvasRenderingContext2D, t: number): void {
+    // SAP blue background
+    const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H);
+    g.addColorStop(0, "#003d6b");
+    g.addColorStop(1, "#001a2e");
     ctx.fillStyle = g;
-    ctx.fillRect(0, by, SCREEN_W, 70);
-
-    // occasional horizontal tear
-    if (Math.random() < 0.05) {
-      const ty = (Math.random() * SCREEN_H) | 0;
-      const th = 4 + ((Math.random() * 14) | 0);
-      const shift = ((Math.random() - 0.5) * 46) | 0;
-      const slice = ctx.getImageData(0, ty, SCREEN_W, th);
-      ctx.putImageData(slice, shift, ty);
-    }
-  }
-
-  // ---- CH 2 · COLOR BARS ---------------------------------------------------
-  private drawBars(ctx: CanvasRenderingContext2D, t: number): void {
-    ctx.fillStyle = "#0a0a0a";
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
 
-    const top = ["#c8c8c8", "#c8c800", "#00c8c8", "#00c800", "#c800c8", "#c80000", "#0000c8"];
-    const h1 = SCREEN_H * 0.66;
-    const w = SCREEN_W / 7;
-    top.forEach((c, i) => {
-      ctx.fillStyle = c;
-      ctx.fillRect(i * w, 0, w + 1, h1);
-    });
+    // Header
+    ctx.fillStyle = "#00a1e0";
+    ctx.fillRect(0, 0, SCREEN_W, 50);
+    ctx.font = "bold 28px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("LIBELLE DataMasking", 20, 35);
 
-    // reverse strip
-    const rev = ["#0000c8", "#0d0d0d", "#c800c8", "#0d0d0d", "#00c8c8", "#0d0d0d", "#c8c8c8"];
-    const h2 = SCREEN_H * 0.1;
-    rev.forEach((c, i) => {
-      ctx.fillStyle = c;
-      ctx.fillRect(i * w, h1, w + 1, h2);
-    });
+    // Status indicator
+    ctx.fillStyle = "#4ade80";
+    ctx.beginPath();
+    ctx.arc(SCREEN_W - 30, 25, 8, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.font = "14px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "right";
+    ctx.fillText("ACTIVE", SCREEN_W - 45, 30);
+    ctx.textAlign = "left";
 
-    // pluge strip
-    const y3 = h1 + h2;
-    const pluge = ["#00214c", "#f2f2f2", "#32006a", "#0d0d0d", "#050505", "#0d0d0d", "#161616"];
-    pluge.forEach((c, i) => {
-      ctx.fillStyle = c;
-      ctx.fillRect(i * w, y3, w + 1, SCREEN_H - y3);
-    });
-
-    // drifting brightness band (vertical-hold drift)
-    const by = ((t * 26) % (SCREEN_H + 160)) - 80;
-    const g = ctx.createLinearGradient(0, by, 0, by + 80);
-    g.addColorStop(0, "rgba(255,255,255,0)");
-    g.addColorStop(0.5, "rgba(255,255,255,0.05)");
-    g.addColorStop(1, "rgba(255,255,255,0)");
-    ctx.fillStyle = g;
-    ctx.fillRect(0, by, SCREEN_W, 80);
+    // Masked data table
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillRect(20, 70, SCREEN_W - 40, SCREEN_H - 90);
 
     ctx.font = "16px 'IBM Plex Mono', monospace";
-    ctx.textAlign = "right";
-    ctx.fillStyle = "#e8e8e8";
-    ctx.fillText("ZENITRON · CH 02 · 512×384", SCREEN_W - 14, SCREEN_H - 14);
-    ctx.textAlign = "left";
+    const lineIdx = Math.floor(t * 0.8) % LIBELLE_DATA.length;
+    
+    for (let i = 0; i < 12; i++) {
+      const y = 95 + i * 24;
+      const dataIdx = (lineIdx + i) % LIBELLE_DATA.length;
+      const line = LIBELLE_DATA[dataIdx];
+      
+      // Alternating row colors
+      ctx.fillStyle = i % 2 === 0 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)";
+      ctx.fillRect(20, y - 15, SCREEN_W - 40, 24);
+      
+      // Masked text in green
+      ctx.fillStyle = "#4ade80";
+      ctx.fillText(line, 30, y);
+    }
+
+    // Scanning animation
+    const scanY = 70 + ((t * 50) % (SCREEN_H - 90));
+    ctx.strokeStyle = "rgba(0,161,224,0.6)";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(20, scanY);
+    ctx.lineTo(SCREEN_W - 20, scanY);
+    ctx.stroke();
   }
 
-  // ---- CH 3 · EVENING NEWS ---------------------------------------------------
-  private drawNews(ctx: CanvasRenderingContext2D, t: number): void {
+  // ---- CH 2 · AILO-IT (Salesforce) -----------------------------------------
+  private drawAilo(ctx: CanvasRenderingContext2D, t: number): void {
+    // Salesforce blue background
+    ctx.fillStyle = "#032e61";
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // Header with Salesforce cloud logo
+    ctx.fillStyle = "#0176d3";
+    ctx.fillRect(0, 0, SCREEN_W, 60);
+    ctx.font = "bold 32px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Salesforce Developer Console", 20, 42);
+
+    // Cloud icon
+    ctx.fillStyle = "#fff";
+    ctx.beginPath();
+    ctx.arc(SCREEN_W - 50, 30, 15, 0, Math.PI * 2);
+    ctx.arc(SCREEN_W - 35, 30, 12, 0, Math.PI * 2);
+    ctx.arc(SCREEN_W - 65, 30, 12, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Code editor area
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(20, 80, SCREEN_W - 40, SCREEN_H - 100);
+
+    // Line numbers
+    ctx.fillStyle = "#666";
+    ctx.fillRect(20, 80, 30, SCREEN_H - 100);
+    for (let i = 0; i < 15; i++) {
+      ctx.fillStyle = "#888";
+      ctx.font = "14px 'IBM Plex Mono', monospace";
+      ctx.fillText(String(i + 1), 28, 100 + i * 20);
+    }
+
+    // Apex/LWC code
+    const lineIdx = Math.floor(t * 0.6) % AILO_DATA.length;
+    ctx.font = "15px 'IBM Plex Mono', monospace";
+    
+    for (let i = 0; i < 14; i++) {
+      const y = 100 + i * 20;
+      const dataIdx = (lineIdx + i) % AILO_DATA.length;
+      const line = AILO_DATA[dataIdx];
+      
+      // Syntax highlighting
+      if (line.includes("class") || line.includes("public") || line.includes("with")) {
+        ctx.fillStyle = "#569cd6";
+      } else if (line.includes("'") || line.includes('"')) {
+        ctx.fillStyle = "#ce9178";
+      } else if (line.includes("SELECT") || line.includes("FROM")) {
+        ctx.fillStyle = "#c586c0";
+      } else {
+        ctx.fillStyle = "#d4d4d4";
+      }
+      
+      ctx.fillText(line, 60, y);
+    }
+
+    // Deployment status
+    ctx.fillStyle = "#4ade80";
+    ctx.font = "bold 16px 'IBM Plex Mono', monospace";
+    ctx.fillText("✓ Deployed successfully", 60, SCREEN_H - 30);
+  }
+
+  // ---- CH 3 · IRS SOFTWARE (Vue.js) -------------------------------------------
+  private drawIRS(ctx: CanvasRenderingContext2D, t: number): void {
+    // Dark code editor background
+    ctx.fillStyle = "#1e1e1e";
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // Editor tabs
+    ctx.fillStyle = "#2d2d2d";
+    ctx.fillRect(0, 0, SCREEN_W, 30);
+    ctx.fillStyle = "#42b883"; // Vue green
+    ctx.fillRect(10, 5, 120, 25);
+    ctx.font = "14px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("App.vue", 20, 22);
+
+    // Line numbers
+    ctx.fillStyle = "#858585";
+    ctx.fillRect(0, 30, 40, SCREEN_H - 30);
+    for (let i = 0; i < 20; i++) {
+      ctx.fillText(String(i + 1), 15, 50 + i * 18);
+    }
+
+    // Code lines with syntax highlighting
+    const lineIdx = Math.floor(t * 0.5) % IRS_DATA.length;
+    ctx.font = "16px 'IBM Plex Mono', monospace";
+    
+    for (let i = 0; i < 15; i++) {
+      const y = 50 + i * 18;
+      const dataIdx = (lineIdx + i) % IRS_DATA.length;
+      const line = IRS_DATA[dataIdx];
+      
+      // Syntax highlighting
+      if (line.includes("<") || line.includes(">")) {
+        ctx.fillStyle = "#569cd6"; // HTML tags
+      } else if (line.includes("export") || line.includes("data") || line.includes("methods")) {
+        ctx.fillStyle = "#c586c0"; // Keywords
+      } else if (line.includes("'") || line.includes('"')) {
+        ctx.fillStyle = "#ce9178"; // Strings
+      } else {
+        ctx.fillStyle = "#d4d4d4"; // Default
+      }
+      
+      ctx.fillText(line, 50, y);
+    }
+
+    // Cursor blink
+    if (Math.sin(t * 4) > 0) {
+      ctx.fillStyle = "#aeafad";
+      ctx.fillRect(50 + ctx.measureText(IRS_DATA[lineIdx]).width + 5, 38, 2, 16);
+    }
+
+    // Vue logo
+    ctx.fillStyle = "#42b883";
+    ctx.beginPath();
+    ctx.moveTo(SCREEN_W - 60, SCREEN_H - 60);
+    ctx.lineTo(SCREEN_W - 40, SCREEN_H - 30);
+    ctx.lineTo(SCREEN_W - 20, SCREEN_H - 60);
+    ctx.closePath();
+    ctx.fill();
+  }
+
+  // ---- CH 4 · EFFICOM (Windows Server) --------------------------------------
+  private drawEfficom(ctx: CanvasRenderingContext2D, t: number): void {
+    // Windows blue background
+    ctx.fillStyle = "#0078d4";
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // Taskbar
+    ctx.fillStyle = "#1f1f1f";
+    ctx.fillRect(0, SCREEN_H - 40, SCREEN_W, 40);
+    
+    // Start button
+    ctx.fillStyle = "#0078d4";
+    ctx.fillRect(5, SCREEN_H - 35, 30, 30);
+    ctx.font = "bold 20px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("⊞", 12, SCREEN_H - 13);
+
+    // PowerShell window
+    ctx.fillStyle = "#012456";
+    ctx.fillRect(20, 20, SCREEN_W - 40, SCREEN_H - 80);
+    
+    // Title bar
+    ctx.fillStyle = "#1f1f1f";
+    ctx.fillRect(20, 20, SCREEN_W - 40, 30);
+    ctx.font = "14px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("Windows PowerShell", 30, 40);
+
+    // Close/minimize/maximize buttons
+    ctx.fillStyle = "#e81123";
+    ctx.fillRect(SCREEN_W - 50, 25, 20, 20);
+    ctx.fillStyle = "#fff";
+    ctx.fillText("×", SCREEN_W - 45, 40);
+
+    // Command output
+    ctx.fillStyle = "#fff";
+    ctx.font = "15px 'IBM Plex Mono', monospace";
+    const lineIdx = Math.floor(t * 0.7) % EFFICOM_DATA.length;
+    
+    for (let i = 0; i < 12; i++) {
+      const y = 70 + i * 22;
+      const dataIdx = (lineIdx + i) % EFFICOM_DATA.length;
+      ctx.fillText(EFFICOM_DATA[dataIdx], 30, y);
+    }
+
+    // Blinking cursor
+    if (Math.sin(t * 3) > 0) {
+      ctx.fillRect(30, 70 + 12 * 22 - 15, 8, 15);
+    }
+  }
+
+  // ---- CH 5 · ESCIRES (IBM Watson AI) ---------------------------------------
+  private drawEsciris(ctx: CanvasRenderingContext2D, t: number): void {
+    // IBM blue background
     const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H);
-    g.addColorStop(0, "#0c2347");
-    g.addColorStop(1, "#050d1c");
+    g.addColorStop(0, "#0f62fe");
+    g.addColorStop(1, "#002d9c");
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
 
-    // rotating wire globe
-    const cx = 256;
-    const cy = 150;
-    const r = 74;
-    ctx.strokeStyle = "rgba(120,170,235,0.85)";
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-    for (let i = -2; i <= 2; i++) {
-      ctx.beginPath();
-      ctx.ellipse(cx, cy, Math.abs(Math.cos(t * 0.7 + i * 0.6)) * r * 0.92 + 4, r, 0, 0, Math.PI * 2);
-      ctx.strokeStyle = "rgba(120,170,235,0.35)";
-      ctx.stroke();
-    }
-    ctx.beginPath();
-    ctx.ellipse(cx, cy, r, r * 0.32, 0, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(120,170,235,0.5)";
-    ctx.stroke();
+    // Header
+    ctx.fillStyle = "#001d6c";
+    ctx.fillRect(0, 0, SCREEN_W, 60);
+    ctx.font = "bold 30px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.fillText("IBM Watson AI Console", 20, 40);
 
-    // LIVE pip
-    const liveA = 0.55 + 0.45 * Math.sin(t * 5);
-    ctx.fillStyle = `rgba(255,64,54,${liveA.toFixed(3)})`;
-    ctx.beginPath();
-    ctx.arc(34, 34, 7, 0, Math.PI * 2);
-    ctx.fill();
-    ctx.font = "22px 'VT323', monospace";
-    ctx.fillStyle = "#ff8a80";
-    ctx.fillText("LIVE", 48, 42);
-
-    // clock
-    const now = new Date();
-    const hh = String(now.getHours()).padStart(2, "0");
-    const mm = String(now.getMinutes()).padStart(2, "0");
-    const ss = String(now.getSeconds()).padStart(2, "0");
-    ctx.textAlign = "right";
-    ctx.font = "34px 'VT323', monospace";
-    ctx.fillStyle = "#bcd6ff";
-    ctx.fillText(`${hh}:${mm}:${ss}`, SCREEN_W - 20, 42);
-    ctx.textAlign = "left";
-
-    // masthead
-    ctx.fillStyle = "#b3202a";
-    ctx.fillRect(0, 240, SCREEN_W, 46);
-    ctx.font = "44px 'Bebas Neue', sans-serif";
-    ctx.fillStyle = "#f4ead8";
-    ctx.fillText("THE EVENING REPORT", 16, 275);
-    ctx.font = "20px 'VT323', monospace";
-    ctx.fillStyle = "#ffd9a0";
-    ctx.textAlign = "right";
-    ctx.fillText("CHANNEL 3 · 19:63 EDITION", SCREEN_W - 16, 272);
-    ctx.textAlign = "left";
-
-    // headline typewriter
-    if (t - this.headlineStart > 6) {
-      this.headlineStart = t;
-      this.headlineIdx = (this.headlineIdx + 1) % HEADLINES.length;
-    }
-    const full = HEADLINES[this.headlineIdx];
-    const chars = Math.min(full.length, Math.floor((t - this.headlineStart) * 16));
-    ctx.fillStyle = "#071327";
-    ctx.fillRect(0, 286, SCREEN_W, 52);
-    ctx.font = "26px 'VT323', monospace";
-    ctx.fillStyle = "#7dffb0";
-    ctx.fillText("» " + full.slice(0, chars) + (chars < full.length && Math.sin(t * 8) > 0 ? "█" : ""), 16, 320);
-
-    // ticker
-    ctx.fillStyle = "#02060d";
-    ctx.fillRect(0, 338, SCREEN_W, 46);
-    ctx.font = "26px 'VT323', monospace";
-    const tw = ctx.measureText(TICKER).width;
-    const off = (t * 70) % tw;
-    ctx.fillStyle = "#e8e4d8";
-    ctx.fillText(TICKER, -off, 368);
-    ctx.fillText(TICKER, -off + tw, 368);
-  }
-
-  // ---- CH 4 · ZENI-POP (bouncing ident) ---------------------------------------
-  private drawBounce(ctx: CanvasRenderingContext2D, _t: number, dt: number): void {
-    ctx.fillStyle = "rgba(4,4,6,0.32)";
-    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-
-    ctx.strokeStyle = "rgba(80,90,120,0.10)";
-    ctx.lineWidth = 1;
-    for (let x = 0; x < SCREEN_W; x += 32) {
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, SCREEN_H);
-      ctx.stroke();
-    }
-    for (let y = 0; y < SCREEN_H; y += 32) {
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(SCREEN_W, y);
-      ctx.stroke();
-    }
-
-    const b = this.bounce;
-    const bw = 168;
-    const bh = 64;
-    b.x += b.vx * dt;
-    b.y += b.vy * dt;
-    let hit = false;
-    if (b.x < 12) { b.x = 12; b.vx *= -1; hit = true; }
-    if (b.x > SCREEN_W - bw - 12) { b.x = SCREEN_W - bw - 12; b.vx *= -1; hit = true; }
-    if (b.y < 12) { b.y = 12; b.vy *= -1; hit = true; }
-    if (b.y > SCREEN_H - bh - 12) { b.y = SCREEN_H - bh - 12; b.vy *= -1; hit = true; }
-    if (hit) b.hue = (b.hue + 47) % 360;
-
-    const col = `hsl(${b.hue}, 85%, 62%)`;
-    ctx.strokeStyle = col;
-    ctx.lineWidth = 3;
-    ctx.strokeRect(b.x, b.y, bw, bh);
-    ctx.fillStyle = "rgba(0,0,0,0.55)";
-    ctx.fillRect(b.x + 3, b.y + 3, bw - 6, bh - 6);
-    ctx.font = "38px 'Bebas Neue', sans-serif";
-    ctx.fillStyle = col;
-    ctx.textAlign = "center";
-    ctx.fillText("ZENITRON", b.x + bw / 2, b.y + 40);
-    ctx.font = "16px 'VT323', monospace";
-    ctx.fillStyle = "rgba(255,255,255,0.75)";
-    ctx.fillText("CH 04", b.x + bw / 2, b.y + 57);
-    ctx.textAlign = "left";
-  }
-
-  // ---- CH 5 · MONOSCOPE --------------------------------------------------------
-  private drawTestCard(ctx: CanvasRenderingContext2D, t: number): void {
-    ctx.fillStyle = "#101010";
-    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-
-    // fine grating top
-    for (let y = 6; y < 44; y += 4) {
-      ctx.fillStyle = y % 8 === 0 ? "#cfcfcf" : "#161616";
-      ctx.fillRect(20, y, SCREEN_W - 40, 2);
-    }
-
-    const cx = SCREEN_W / 2;
-    const cy = 196;
-    const r = 128;
-
-    // rotating sweep wedge
-    ctx.save();
-    ctx.translate(cx, cy);
-    ctx.rotate(t * 0.9);
-    ctx.fillStyle = "rgba(255,255,255,0.06)";
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.arc(0, 0, r, 0, 0.7);
-    ctx.closePath();
-    ctx.fill();
-    ctx.restore();
-
-    // gray wedges
-    for (let i = 0; i < 12; i++) {
-      const a0 = (i / 12) * Math.PI * 2;
-      const a1 = ((i + 1) / 12) * Math.PI * 2;
-      ctx.beginPath();
-      ctx.moveTo(cx, cy);
-      ctx.arc(cx, cy, r, a0, a1);
-      ctx.closePath();
-      const v = i % 2 === 0 ? 190 : 90;
-      ctx.fillStyle = `rgb(${v},${v},${v})`;
-      ctx.fill();
-    }
-
-    ctx.lineWidth = 3;
-    ctx.strokeStyle = "#f0f0f0";
-    ctx.beginPath();
-    ctx.arc(cx, cy, r, 0, Math.PI * 2);
-    ctx.stroke();
-    ctx.lineWidth = 1.5;
-    ctx.beginPath();
-    ctx.arc(cx, cy, r * 0.72, 0, Math.PI * 2);
-    ctx.stroke();
-
-    // crosshair
-    ctx.beginPath();
-    ctx.moveTo(cx - r - 18, cy);
-    ctx.lineTo(cx + r + 18, cy);
-    ctx.moveTo(cx, cy - r - 18);
-    ctx.lineTo(cx, cy + r + 18);
-    ctx.stroke();
-
-    // center badge
-    ctx.beginPath();
-    ctx.arc(cx, cy, 52, 0, Math.PI * 2);
-    ctx.fillStyle = "#ececec";
-    ctx.fill();
-    ctx.font = "30px 'Bebas Neue', sans-serif";
-    ctx.fillStyle = "#141414";
-    ctx.textAlign = "center";
-    ctx.fillText("ZENITRON", cx, cy + 2);
-    ctx.font = "15px 'VT323', monospace";
-    ctx.fillText("MONOSCOPE 5", cx, cy + 22);
-
-    // grayscale steps
-    for (let i = 0; i < 8; i++) {
-      const v = Math.round((i / 7) * 235);
-      ctx.fillStyle = `rgb(${v},${v},${v})`;
-      ctx.fillRect(60 + i * 49, 344, 47, 26);
-    }
-
-    ctx.font = "17px 'VT323', monospace";
-    ctx.fillStyle = "#9a9a9a";
-    ctx.fillText("CH 05 · 512 LINES · 4:3 · DO NOT ADJUST YOUR SET", cx, 30);
-    ctx.textAlign = "left";
-  }
-
-  // ---- CH 6 · THE NUMBERS STATION --------------------------------------------------
-  private drawNumbers(ctx: CanvasRenderingContext2D, t: number, fresh: boolean): void {
-    // phosphor ghosting — translucent wipe leaves a CRT trail; opaque on tune-in
-    ctx.fillStyle = fresh ? "#000500" : "rgba(0, 5, 0, 0.2)";
-    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
-
-    // interference / static, sparse for that shortwave feel
-    const imageData = ctx.getImageData(0, 0, SCREEN_W, SCREEN_H);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 40) {
-      if (Math.random() > 0.95) {
-        const brightness = Math.random() * 50;
-        data[i] = brightness;
-        data[i + 1] = brightness;
-        data[i + 2] = brightness;
+    // Neural network visualization
+    const nodes = 8;
+    const layers = 4;
+    const nodeRadius = 8;
+    
+    for (let layer = 0; layer < layers; layer++) {
+      const x = 80 + layer * ((SCREEN_W - 160) / (layers - 1));
+      
+      for (let node = 0; node < nodes; node++) {
+        const y = 100 + node * ((SCREEN_H - 200) / (nodes - 1));
+        
+        // Draw connections
+        if (layer < layers - 1) {
+          const nextX = 80 + (layer + 1) * ((SCREEN_W - 160) / (layers - 1));
+          for (let nextNode = 0; nextNode < nodes; nextNode++) {
+            const nextY = 100 + nextNode * ((SCREEN_H - 200) / (nodes - 1));
+            const activation = Math.sin(t * 2 + layer + node + nextNode) > 0.5;
+            ctx.strokeStyle = activation ? "rgba(255,255,255,0.6)" : "rgba(255,255,255,0.1)";
+            ctx.lineWidth = 1;
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+            ctx.lineTo(nextX, nextY);
+            ctx.stroke();
+          }
+        }
+        
+        // Draw node
+        const active = Math.sin(t * 3 + layer + node) > 0;
+        ctx.fillStyle = active ? "#fff" : "rgba(255,255,255,0.3)";
+        ctx.beginPath();
+        ctx.arc(x, y, nodeRadius, 0, Math.PI * 2);
+        ctx.fill();
       }
     }
-    ctx.putImageData(imageData, 0, 0);
 
-    // a fresh code group every 3 seconds
-    if (t - this.numbersChangedAt > 3) {
-      this.numbersChangedAt = t;
-      this.numbers = Array.from({ length: 5 }, () =>
-        String(Math.floor(Math.random() * 100)).padStart(2, "0")
-      );
+    // Status panel
+    ctx.fillStyle = "rgba(0,0,0,0.4)";
+    ctx.fillRect(20, SCREEN_H - 120, SCREEN_W - 40, 100);
+    
+    ctx.font = "16px 'IBM Plex Mono', monospace";
+    const lineIdx = Math.floor(t * 0.9) % ESCIRES_DATA.length;
+    
+    for (let i = 0; i < 4; i++) {
+      const y = SCREEN_H - 95 + i * 22;
+      const dataIdx = (lineIdx + i) % ESCIRES_DATA.length;
+      ctx.fillStyle = "#4ade80";
+      ctx.fillText(ESCIRES_DATA[dataIdx], 30, y);
     }
-
-    ctx.textAlign = "center";
-    ctx.shadowColor = "#4aff4a";
-
-    // blinking REC pip
-    if (Math.sin(t * 4) > -0.35) {
-      ctx.fillStyle = "#ff4036";
-      ctx.shadowColor = "#ff4036";
-      ctx.shadowBlur = 10;
-      ctx.beginPath();
-      ctx.arc(30, 30, 6, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.textAlign = "left";
-      ctx.font = "22px 'VT323', 'Courier New', monospace";
-      ctx.fillStyle = "#ff8a80";
-      ctx.fillText("REC", 42, 38);
-    }
-
-    // carrier frequency, top right
-    ctx.textAlign = "right";
-    ctx.font = "20px 'VT323', 'Courier New', monospace";
-    ctx.fillStyle = "#22aa22";
-    ctx.shadowColor = "#4aff4a";
-    ctx.shadowBlur = 4;
-    ctx.fillText("46.520 MHz · MK RELAY", SCREEN_W - 18, 38);
-
-    // flavor text
-    ctx.textAlign = "center";
-    ctx.font = "26px 'VT323', 'Courier New', monospace";
-    ctx.fillStyle = "#22aa22";
-    ctx.shadowBlur = 6;
-    ctx.fillText("SUBJECT: MASON", SCREEN_W / 2, 110);
-    ctx.fillText("STATUS: ACTIVE", SCREEN_W / 2, 332);
-
-    // the code group — phosphor green with analog jitter
-    const jx = (Math.random() - 0.5) * 4;
-    const jy = (Math.random() - 0.5) * 4;
-    ctx.font = "58px 'VT323', 'Courier New', monospace";
-    ctx.fillStyle = "#4aff4a";
-    ctx.shadowBlur = 16;
-    ctx.fillText(this.numbers.join(" "), SCREEN_W / 2 + jx, 228 + jy);
-
-    // occasional horizontal tear / glitch
-    if (Math.random() > 0.9) {
-      const tearY = Math.random() * (SCREEN_H - 44);
-      const tearHeight = Math.random() * 30 + 10;
-      const tearShift = (Math.random() - 0.5) * 40;
-      const tearData = ctx.getImageData(0, tearY, SCREEN_W, tearHeight);
-      ctx.putImageData(tearData, tearShift, tearY);
-    }
-
-    ctx.textAlign = "left";
-    ctx.shadowBlur = 0;
   }
 
   // ---- phosphor OSD ---------------------------------------------------------------

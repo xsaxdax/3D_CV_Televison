@@ -103,19 +103,19 @@ class TvAudio {
     const set = (g: GainNode | null, v: number) =>
       g && g.gain.setTargetAtTime(power ? v : 0, t, 0.08);
     const mix = [
-      [0.5, 0.015, 0],
-      [0.012, 0.03, 0.03],
-      [0.02, 0.025, 0],
-      [0.006, 0.02, 0],
-      [0.01, 0.03, 0],
-      [0.035, 0.02, 0.014],
+      [0.02, 0.025, 0.01],    // Libelle - soft hum
+      [0.015, 0.02, 0.02],    // Ailo - Salesforce tone
+      [0.01, 0.015, 0.005],   // IRS - quiet code
+      [0.025, 0.03, 0.015],   // Efficom - server hum
+      [0.03, 0.025, 0.025],   // Esciris - AI processing
     ][channel];
     set(this.noiseGain, mix[0]);
     set(this.humGain, mix[1]);
     set(this.toneGain, mix[2]);
     if (this.toneOsc) {
-      // the numbers station carries a low, droning 620 Hz carrier
-      this.toneOsc.frequency.setTargetAtTime(channel === 5 ? 620 : 997, t, 0.2);
+      // Different tone frequencies per channel
+      const freqs = [440, 523, 392, 330, 659];
+      this.toneOsc.frequency.setTargetAtTime(freqs[channel], t, 0.2);
     }
   }
 
