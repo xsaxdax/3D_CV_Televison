@@ -104,6 +104,7 @@ class TvAudio {
       g && g.gain.setTargetAtTime(power ? v : 0, t, 0.08);
     const mix = [
       [0.008, 0.01, 0.003],   // CV - very quiet
+      [0.008, 0.01, 0.003],   // Skills - very quiet
       [0.02, 0.025, 0.01],    // Libelle - soft hum
       [0.015, 0.02, 0.02],    // Ailo - Salesforce tone
       [0.01, 0.015, 0.005],   // IRS - quiet code
@@ -115,7 +116,7 @@ class TvAudio {
     set(this.toneGain, mix[2]);
     if (this.toneOsc) {
       // Different tone frequencies per channel
-      const freqs = [220, 440, 523, 392, 330, 659];
+      const freqs = [220, 220, 440, 523, 392, 330, 659];
       this.toneOsc.frequency.setTargetAtTime(freqs[channel], t, 0.2);
     }
   }

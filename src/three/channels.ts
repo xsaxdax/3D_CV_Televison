@@ -6,11 +6,12 @@ export interface ChannelDef {
 
 export const CHANNELS: ChannelDef[] = [
   { id: 1, name: "MY CV", label: "RESUME" },
-  { id: 2, name: "LIBELLE AG", label: "DATA MASKING" },
-  { id: 3, name: "AILO-IT", label: "SALESFORCE" },
-  { id: 4, name: "IRS SOFTWARE", label: "VUE.JS" },
-  { id: 5, name: "EFFICOM", label: "WINDOWS" },
-  { id: 6, name: "ESCIRES", label: "IBM WATSON" },
+  { id: 2, name: "SKILLS", label: "TECH" },
+  { id: 3, name: "LIBELLE AG", label: "DATA MASKING" },
+  { id: 4, name: "AILO-IT", label: "SALESFORCE" },
+  { id: 5, name: "IRS SOFTWARE", label: "VUE.JS" },
+  { id: 6, name: "EFFICOM", label: "WINDOWS" },
+  { id: 7, name: "ESCIRES", label: "IBM WATSON" },
 ];
 
 export const SCREEN_W = 512;
@@ -83,18 +84,21 @@ export class ChannelRenderer {
         this.drawCV(ctx, t);
         break;
       case 1:
-        this.drawLibelle(ctx, t);
+        this.drawSkills(ctx, t);
         break;
       case 2:
-        this.drawAilo(ctx, t);
+        this.drawLibelle(ctx, t);
         break;
       case 3:
-        this.drawIRS(ctx, t);
+        this.drawAilo(ctx, t);
         break;
       case 4:
-        this.drawEfficom(ctx, t);
+        this.drawIRS(ctx, t);
         break;
       case 5:
+        this.drawEfficom(ctx, t);
+        break;
+      case 6:
         this.drawEsciris(ctx, t);
         break;
     }
@@ -152,31 +156,44 @@ export class ChannelRenderer {
       ctx.fillText(exp.company, 20, yPos + 32);
       yPos += 48;
     }
+  }
 
-    // Skills Section
-    ctx.font = "bold 20px 'IBM Plex Mono', monospace";
+  // ---- CH 1 · SKILLS - Technical Skills Display ------------------------------
+  private drawSkills(ctx: CanvasRenderingContext2D, t: number): void {
+    // Dark background
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
+
+    // Header
     ctx.fillStyle = "#e8a33d";
-    ctx.fillText("SKILLS", 20, yPos + 10);
+    ctx.fillRect(0, 0, SCREEN_W, 50);
+    ctx.font = "bold 32px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#1a1a1a";
+    ctx.fillText("TECHNICAL SKILLS", 20, 35);
 
-    ctx.font = "13px 'IBM Plex Mono', monospace";
+    // Skills list
+    ctx.font = "14px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "#e9ddc6";
     
     const skills = [
-      "Kundenbetreuung und Projektplanung",
-      "HANA & Oracle - Produktberatung (Libelle AG)",
-      "SAP Basis - Produktberatung (Libelle AG)",
-      "HTML, CSS, JS, React, Node, Vue, MySQL",
+      "Customer Support & Project Planning",
+      "HANA & Oracle - Product Consulting (Libelle AG)",
+      "SAP Basis - Product Consulting (Libelle AG)",
+      "HTML, CSS, JavaScript, React, Node, Vue, MySQL",
       "Salesforce: Admin, Flows, Apex, LWC (Ailo-IT)",
-      "Bash, Bash Skripte & PowerShell",
+      "Bash, Bash Scripts & PowerShell",
       "Python, Java",
-      "SQL-Abfragen & Datenbanken-Modellierung",
-      "Netzwerkadministration Windows (Efficom)"
+      "SQL Queries & Database Modeling",
+      "Windows Network Administration (Efficom)"
     ];
 
-    yPos += 30;
+    let yPos = 80;
     for (const skill of skills) {
-      ctx.fillText("• " + skill, 20, yPos);
-      yPos += 18;
+      ctx.fillStyle = "#e8a33d";
+      ctx.fillText("•", 20, yPos);
+      ctx.fillStyle = "#e9ddc6";
+      ctx.fillText(skill, 35, yPos);
+      yPos += 28;
     }
   }
 
@@ -253,67 +270,78 @@ export class ChannelRenderer {
     }
   }
 
-  // ---- CH 2 · AILO-IT (Salesforce) -----------------------------------------
+  // ---- CH 3 · AILO-IT (Salesforce) - Responsibilities & Skills --------------
   private drawAilo(ctx: CanvasRenderingContext2D, t: number): void {
     // Salesforce blue background
     ctx.fillStyle = "#032e61";
     ctx.fillRect(0, 0, SCREEN_W, SCREEN_H);
 
-    // Header with Salesforce cloud logo
+    // Header
     ctx.fillStyle = "#0176d3";
-    ctx.fillRect(0, 0, SCREEN_W, 60);
-    ctx.font = "bold 32px 'IBM Plex Mono', monospace";
+    ctx.fillRect(0, 0, SCREEN_W, 50);
+    ctx.font = "bold 28px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "#fff";
-    ctx.fillText("Salesforce Developer Console", 20, 42);
+    ctx.fillText("AILO-IT - Salesforce Developer", 20, 35);
 
-    // Cloud icon
-    ctx.fillStyle = "#fff";
+    // Status indicator
+    ctx.fillStyle = "#4ade80";
     ctx.beginPath();
-    ctx.arc(SCREEN_W - 50, 30, 15, 0, Math.PI * 2);
-    ctx.arc(SCREEN_W - 35, 30, 12, 0, Math.PI * 2);
-    ctx.arc(SCREEN_W - 65, 30, 12, 0, Math.PI * 2);
+    ctx.arc(SCREEN_W - 30, 25, 8, 0, Math.PI * 2);
     ctx.fill();
+    ctx.font = "14px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
+    ctx.textAlign = "right";
+    ctx.fillText("COMPLETED", SCREEN_W - 45, 30);
+    ctx.textAlign = "left";
 
-    // Code editor area
-    ctx.fillStyle = "#1a1a1a";
-    ctx.fillRect(20, 80, SCREEN_W - 40, SCREEN_H - 100);
+    // Job details panel
+    ctx.fillStyle = "rgba(0,0,0,0.3)";
+    ctx.fillRect(20, 70, SCREEN_W - 40, SCREEN_H - 90);
 
-    // Line numbers
-    ctx.fillStyle = "#666";
-    ctx.fillRect(20, 80, 30, SCREEN_H - 100);
-    for (let i = 0; i < 15; i++) {
-      ctx.fillStyle = "#888";
-      ctx.font = "14px 'IBM Plex Mono', monospace";
-      ctx.fillText(String(i + 1), 28, 100 + i * 20);
-    }
-
-    // Apex/LWC code
-    const lineIdx = Math.floor(t * 0.6) % AILO_DATA.length;
-    ctx.font = "15px 'IBM Plex Mono', monospace";
+    ctx.font = "18px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
     
-    for (let i = 0; i < 14; i++) {
-      const y = 100 + i * 20;
-      const dataIdx = (lineIdx + i) % AILO_DATA.length;
-      const line = AILO_DATA[dataIdx];
-      
-      // Syntax highlighting
-      if (line.includes("class") || line.includes("public") || line.includes("with")) {
-        ctx.fillStyle = "#569cd6";
-      } else if (line.includes("'") || line.includes('"')) {
-        ctx.fillStyle = "#ce9178";
-      } else if (line.includes("SELECT") || line.includes("FROM")) {
-        ctx.fillStyle = "#c586c0";
-      } else {
-        ctx.fillStyle = "#d4d4d4";
+    // Static job information
+    const jobs = [
+      "Period: 12.2022 - 10.2023",
+      "Location: Mössingen",
+      "",
+      "Responsibilities:",
+      "• Salesforce Administration & Configuration",
+      "• Process Automation (Flows, Process Builder)",
+      "• Lightning Web Components Development",
+      "• Apex Triggers & Classes Implementation",
+      "• API Integration (No-Code/Low-Code)",
+      "",
+      "Core Competencies:",
+      "• Process Builder & Workflow Rules",
+      "• Validation Rules & Formula Fields",
+      "• Custom Objects & Tabs Configuration",
+      "• AppExchange Solutions (Time Warp)",
+      "• Stream Script for No-Code Components",
+      "",
+      "Key Projects: Inprodius, Adwus, Finmatch, Tecdirekt",
+    ];
+
+    let yPos = 95;
+    for (const line of jobs) {
+      if (line === "") {
+        yPos += 8;
+        continue;
       }
       
-      ctx.fillText(line, 60, y);
+      // Highlight headers
+      if (line.includes(":") && !line.includes("•")) {
+        ctx.fillStyle = "#0176d3";
+        ctx.font = "bold 18px 'IBM Plex Mono', monospace";
+      } else {
+        ctx.fillStyle = "#4ade80";
+        ctx.font = "16px 'IBM Plex Mono', monospace";
+      }
+      
+      ctx.fillText(line, 30, yPos);
+      yPos += 20;
     }
-
-    // Deployment status
-    ctx.fillStyle = "#4ade80";
-    ctx.font = "bold 16px 'IBM Plex Mono', monospace";
-    ctx.fillText("✓ Deployed successfully", 60, SCREEN_H - 30);
   }
 
   // ---- CH 3 · IRS SOFTWARE (Vue.js) -------------------------------------------
