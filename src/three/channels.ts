@@ -96,7 +96,7 @@ export class ChannelRenderer {
     }
   }
 
-  // ---- CH 1 · LIBELLE AG (Data Masking) ------------------------------------
+  // ---- CH 1 · LIBELLE AG (Data Masking) - Static Job Display ----------------
   private drawLibelle(ctx: CanvasRenderingContext2D, t: number): void {
     // SAP blue background
     const g = ctx.createLinearGradient(0, 0, 0, SCREEN_H);
@@ -110,7 +110,7 @@ export class ChannelRenderer {
     ctx.fillRect(0, 0, SCREEN_W, 50);
     ctx.font = "bold 28px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "#fff";
-    ctx.fillText("LIBELLE DataMasking", 20, 35);
+    ctx.fillText("LIBELLE AG - Junior Consultant", 20, 35);
 
     // Status indicator
     ctx.fillStyle = "#4ade80";
@@ -120,38 +120,53 @@ export class ChannelRenderer {
     ctx.font = "14px 'IBM Plex Mono', monospace";
     ctx.fillStyle = "#fff";
     ctx.textAlign = "right";
-    ctx.fillText("ACTIVE", SCREEN_W - 45, 30);
+    ctx.fillText("CURRENT", SCREEN_W - 45, 30);
     ctx.textAlign = "left";
 
-    // Masked data table
+    // Job details panel
     ctx.fillStyle = "rgba(0,0,0,0.3)";
     ctx.fillRect(20, 70, SCREEN_W - 40, SCREEN_H - 90);
 
-    ctx.font = "16px 'IBM Plex Mono', monospace";
-    const lineIdx = Math.floor(t * 0.8) % LIBELLE_DATA.length;
+    ctx.font = "18px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = "#fff";
     
-    for (let i = 0; i < 12; i++) {
-      const y = 95 + i * 24;
-      const dataIdx = (lineIdx + i) % LIBELLE_DATA.length;
-      const line = LIBELLE_DATA[dataIdx];
-      
-      // Alternating row colors
-      ctx.fillStyle = i % 2 === 0 ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)";
-      ctx.fillRect(20, y - 15, SCREEN_W - 40, 24);
-      
-      // Masked text in green
-      ctx.fillStyle = "#4ade80";
-      ctx.fillText(line, 30, y);
-    }
+    // Static job information
+    const jobs = [
+      "Period: 11.2024 - Present",
+      "Location: Echterdingen-Leinfelden",
+      "",
+      "Responsibilities:",
+      "• HANA & Oracle product consulting",
+      "• SAP Basis data masking solutions",
+      "• Customer support & project planning",
+      "• Database security implementation",
+      "",
+      "Technologies:",
+      "• SAP HANA Database",
+      "• Oracle Database",
+      "• SAP Basis Administration",
+      "• Data Masking & Security",
+    ];
 
-    // Scanning animation
-    const scanY = 70 + ((t * 50) % (SCREEN_H - 90));
-    ctx.strokeStyle = "rgba(0,161,224,0.6)";
-    ctx.lineWidth = 2;
-    ctx.beginPath();
-    ctx.moveTo(20, scanY);
-    ctx.lineTo(SCREEN_W - 20, scanY);
-    ctx.stroke();
+    let yPos = 95;
+    for (const line of jobs) {
+      if (line === "") {
+        yPos += 10;
+        continue;
+      }
+      
+      // Highlight headers
+      if (line.includes(":") && !line.includes("•")) {
+        ctx.fillStyle = "#00a1e0";
+        ctx.font = "bold 18px 'IBM Plex Mono', monospace";
+      } else {
+        ctx.fillStyle = "#4ade80";
+        ctx.font = "16px 'IBM Plex Mono', monospace";
+      }
+      
+      ctx.fillText(line, 30, yPos);
+      yPos += 22;
+    }
   }
 
   // ---- CH 2 · AILO-IT (Salesforce) -----------------------------------------

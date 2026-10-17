@@ -601,19 +601,22 @@ export class TelevisionScene {
   }
 
   private addFixedLabel(parent: THREE.Group, text: string, x: number, y: number, z: number): void {
-    const labelCanvas = makeCanvas(192, 44);
+    const labelCanvas = makeCanvas(256, 48);
     paintLabel(labelCanvas, text);
     const tex = new THREE.CanvasTexture(labelCanvas);
     tex.minFilter = THREE.LinearFilter;
+    tex.flipY = true; // Ensure texture is not flipped
     this.fontRefresh.push(() => {
       paintLabel(labelCanvas, text);
       tex.needsUpdate = true;
     });
     const lbl = new THREE.Mesh(
-      new THREE.PlaneGeometry(0.24, 0.055),
+      new THREE.PlaneGeometry(0.28, 0.05),
       new THREE.MeshBasicMaterial({ map: tex, transparent: true })
     );
     lbl.position.set(x, y, z);
+    // Ensure label faces forward (no rotation needed for PlaneGeometry default)
+    lbl.rotation.set(0, 0, 0);
     parent.add(lbl);
   }
 
@@ -1042,11 +1045,11 @@ function makeCanvas(w: number, h: number): HTMLCanvasElement {
 function paintLabel(c: HTMLCanvasElement, text: string): void {
   const ctx = c.getContext("2d")!;
   ctx.clearRect(0, 0, c.width, c.height);
-  ctx.font = "26px 'VT323', monospace";
+  ctx.font = "bold 28px 'VT323', monospace";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.fillStyle = "#cfc4ae";
-  ctx.fillText(text, 96, 24);
+  ctx.fillText(text, c.width / 2, c.height / 2);
 }
 
 function paintBrand(c: HTMLCanvasElement): void {
